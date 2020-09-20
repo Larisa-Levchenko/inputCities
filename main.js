@@ -8,6 +8,7 @@ const dropdownSelect = document.querySelector('.dropdown-lists__list--select');
 const dropdownAutocomplete = document.querySelector('.dropdown-lists__list--autocomplete');
 const dropdown = document.querySelectorAll(".dropdown-lists__col");
 const mainBlock = document.querySelector('.input-cities');
+const loading = document.querySelector('.loading');
 
 mainBlock.style.display='none';
 let newLeft;
@@ -278,5 +279,5 @@ const progressDate = (data) => {
 
  getDate(
     (data) =>progressDate(data),     
-    () => console.log('er')
+    () => loading.style.display='flex'
  );
