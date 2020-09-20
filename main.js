@@ -10,6 +10,17 @@ const dropdown = document.querySelectorAll(".dropdown-lists__col");
 const mainBlock = document.querySelector('.input-cities');
 const loading = document.querySelector('.loading');
 
+if (document.cookie===''){
+    let locale;
+    do {
+        locale = prompt('Введите локаль(RU, EN или DE)');
+    }
+    while (locale !== 'RU' && locale !== 'EN' && locale !== 'DE');
+    document.cookie = `locale=${locale};expires=31/12/2020 00:00:00"`;
+}
+
+
+const locale = document.cookie.substring(7, document.cookie.length);
 mainBlock.style.display='none';
 let newLeft;
 
@@ -89,7 +100,7 @@ const clickCity = (target,data) => {
     const elem = target.querySelector(".dropdown-lists__city");
     input.value = elem.textContent.trim();
     closeBtn.style.display = 'inline-block';
-    data.RU.forEach((item) => {
+    data.forEach((item) => {
         item.cities.forEach((city) => {
             if (city.name === elem.textContent.trim()) {
                 mainBtn.target = "_blank";
@@ -122,28 +133,68 @@ const getDropdownDefault = (data) => {
     dropdownDefault.style.display = 'block';
     dropdownAutocomplete.style.display = 'none';
     const dropdownLists = dropdownDefault.querySelector(".dropdown-lists__col");
-    data.RU.forEach((item, index) => {
-        dropdownLists.insertAdjacentHTML(
-            "beforeend",
-            `<div class="dropdown-lists__countryBlock">
+    let mainIndex;
+    if(locale==='RU'){
+        mainIndex=0;
+    } else if (locale === 'DE') {
+        mainIndex = 1;
+    } else if (locale === 'EN') {
+        mainIndex = 2;
+    }
+
+    dropdownLists.insertAdjacentHTML(
+        "beforeend",
+        `<div class="dropdown-lists__countryBlock">
+            <div class="dropdown-lists__total-line">
+                  <div class="dropdown-lists__country">${data[mainIndex].country}</div>
+                  <div class = "dropdown-lists__count" > ${
+                      data[mainIndex].count}
+                   </div>
+            </div>
+            </div>`
+    );
+    const countryBlock = dropdownLists.querySelectorAll(
+        ".dropdown-lists__countryBlock");
+    console.log(countryBlock);
+
+    let arr = filter(data[mainIndex].cities);
+
+    for (let i = 0; i < 3; i++) {
+        data[mainIndex].cities.forEach((city) => {
+            if (city.count === arr[i]) {
+                getCity(countryBlock[0], city, i);
+            }
+        });
+    }
+    
+    data.forEach((item, index) => {
+        
+        if(index!==mainIndex){
+            if(index<mainIndex){
+                index+=1;
+            }
+            dropdownLists.insertAdjacentHTML(
+                "beforeend",
+                `<div class="dropdown-lists__countryBlock">
             <div class="dropdown-lists__total-line">
                   <div class="dropdown-lists__country">${item.country}</div>
                   <div class="dropdown-lists__count">${item.count}</div>
             </div>
             </div>`
-        );
-        const countryBlock = dropdownLists.querySelectorAll(
-            ".dropdown-lists__countryBlock");
+            );
+            const countryBlock = dropdownLists.querySelectorAll(
+                ".dropdown-lists__countryBlock");
 
-        let arr = filter(item.cities);
+            let arr = filter(item.cities);
 
-        for (let i = 0; i < 3; i++) {
-            item.cities.forEach((city) => {
-                if (city.count === arr[i]) {
-                    getCity(countryBlock[index], city, i);
-                }
-            });
-        }
+            for (let i = 0; i < 3; i++) {
+                item.cities.forEach((city) => {
+                    if (city.count === arr[i]) {
+                        getCity(countryBlock[index], city, i);
+                    }
+                });
+            }
+        }        
 
     });
 };
@@ -164,7 +215,7 @@ const getDropdownSelect = (target,data) => {
     dropdownSelect.style.position = 'relative';
     dropdownSelect.style.left = `${newLeft}px`;
     
-    data.RU.forEach((item) => {
+    data.forEach((item) => {
         if (item.country === elem) {
             dropdownLists.insertAdjacentHTML(
                 "beforeend",
@@ -204,7 +255,7 @@ const getDropdownAutocomplete = (data) => {
         closeBtn.style.display = "none";
         mainBtn.style.pointerEvents = 'none';
         let userItem = input.value.toLowerCase();
-        data.RU.forEach((item) => {
+        data.forEach((item) => {
             item.cities.forEach((city) => {
                 let itemCity = city.name
                     .substring(0, input.value.length)
@@ -277,7 +328,19 @@ const progressDate = (data) => {
     input.addEventListener("input",() => getDropdownAutocomplete(data));
 };
 
- getDate(
-    (data) =>progressDate(data),     
-    () => loading.style.display='flex'
- );
+
+if (localStorage.data !== undefined) {
+
+    progressDate(JSON.parse(localStorage.data));
+} else {
+    getDate(
+        (data) => {
+            let json = JSON.stringify(data[locale]);
+            localStorage.data = json;
+            progressDate(data[locale]);
+        },
+        () => loading.style.display = 'flex'
+    );
+}
+
+
